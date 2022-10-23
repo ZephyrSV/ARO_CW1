@@ -21,7 +21,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Question 1")
-        self.geometry("400x500")
+        self.geometry("400x600")
         self.MyGrid = tk.Frame(self)
         self.MyGrid.grid(row=0, column=0, sticky="nsew")
         self.canvas = tk.Canvas(self.MyGrid, width=400, height=400, bg="white")
@@ -40,6 +40,8 @@ class App(tk.Tk):
         tk.Label(self.MyGrid, text="angle").grid(row=2, column=3)
         self.slidert2 = tk.Scale(self.MyGrid, from_=-90, to=90, orient=tk.HORIZONTAL, command=self.update)
         self.slidert2.grid(row=2, column=4)
+        self.label = tk.Label(self.MyGrid, text="end effector coords : x: 0, y: 0")
+        self.label.grid(row=3, column=0, columnspan=5)
 
         self.canvasToWorldSpace = np.matrix([[1, 0, 200],
                                              [0, -1, 350],
@@ -85,12 +87,16 @@ class App(tk.Tk):
         self.drawAxis(self.canvasToWorldSpace, label="World Space")
         # Draw the second link
         link2Transform = self.linkTransformMat(self.sliderl2.get(), np.deg2rad(self.slidert2.get()))
+        worldEndLink2 = link1Transform @ link2Transform  @ np.array([0,0,1])
         endLink2 = self.canvasToWorldSpace @ link1Transform @ link2Transform @ np.array([0,0,1])
         self.canvas.create_line(endLink1[0,0], endLink1[0,1], endLink2[0,0], endLink2[0,1], fill="black", width=5)
         # Draw first's link axis
         self.drawAxis(self.canvasToWorldSpace @ link1Transform, label="Link1 effector")
         # Draw the second link axis (end effector)
         self.drawAxis(self.canvasToWorldSpace @ link1Transform @ link2Transform, label="End Effector")
+        # Update the label
+
+        self.label.config(text=f"end effector coords : x: {worldEndLink2[0,0]:.2f}, y: {worldEndLink2[0,1]:.2f}")
 
 
 
