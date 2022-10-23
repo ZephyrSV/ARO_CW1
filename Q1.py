@@ -55,23 +55,20 @@ class App(tk.Tk):
                                [0, 0, 1]])
         return rot * transpose
 
-    def drawAxis(self, transformMatrix, scale = 10, label=""):
+    def drawAxis(self, transformMatrix, scale = 40, label=""):
         # draws the arrows of the axis according to the transform matrix
-        axisBase = transformMatrix @ np.array([0,0,1])
-        axisEnd1 = transformMatrix @ np.array([0,4 * scale,1])
-        arrowEnd11 = transformMatrix @ np.array([1 * scale, 3 * scale, 1])
-        arrowEnd12 = transformMatrix @ np.array([-1 * scale, 3 * scale, 1])
-        axisEnd2 = transformMatrix @ np.array([4 * scale,0,1])
-        arrowEnd21 = transformMatrix @ np.array([3 * scale, 1 * scale, 1])
-        arrowEnd22 = transformMatrix @ np.array([3 * scale, -1 * scale, 1])
+        arrow = np.array([[0, 0, 1], # arrow origin
+                          [0, 1, 1], # up arrow
+                          [1, 0, 1]]) # right arrow
+        scaleMatrix = np.matrix([[scale, 0, 0],
+                                    [0, scale, 0],
+                                    [0, 0, 1]])
+        scaledArrow = scaleMatrix @ arrow.T
+        transformedArrow = transformMatrix @ scaledArrow
+        self.canvas.create_line(transformedArrow[0, 0], transformedArrow[1, 0], transformedArrow[0, 1], transformedArrow[1, 1], arrow=tk.LAST, fill="red", width=3)
+        self.canvas.create_line(transformedArrow[0, 0], transformedArrow[1, 0], transformedArrow[0, 2], transformedArrow[1, 2], arrow=tk.LAST, fill="blue", width=3)
+        self.canvas.create_text(transformedArrow[0,1]-5*len(label)/2- 15, transformedArrow[1,1], text=label, fill="red")
 
-        self.canvas.create_line(axisBase[0,0], axisBase[0,1], axisEnd1[0,0], axisEnd1[0,1], fill="red", width=3)
-        self.canvas.create_line(axisEnd1[0,0], axisEnd1[0,1], arrowEnd11[0,0], arrowEnd11[0,1], fill="red", width=3)
-        self.canvas.create_line(axisEnd1[0,0], axisEnd1[0,1], arrowEnd12[0,0], arrowEnd12[0,1], fill="red", width=3)
-        self.canvas.create_line(axisBase[0,0], axisBase[0,1], axisEnd2[0,0], axisEnd2[0,1], fill="blue", width=3)
-        self.canvas.create_line(axisEnd2[0,0], axisEnd2[0,1], arrowEnd21[0,0], arrowEnd21[0,1], fill="blue", width=3)
-        self.canvas.create_line(axisEnd2[0,0], axisEnd2[0,1], arrowEnd22[0,0], arrowEnd22[0,1], fill="blue", width=3)
-        self.canvas.create_text(axisEnd1[0,0]-5*len(label)/2- 15, axisEnd1[0,1], text=label, fill="red")
 
 
     def update(self, event):
