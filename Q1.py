@@ -10,8 +10,8 @@
 # Structure:
 #   The GUI is defined in the __init__ function.
 #   The canvas is updated every time the user changes a parameter (sliders). (see function update)
-#   The axis are drawn in the function drawAxis.
-#   The transformation matices of the links are calculated in the function linkTransformMat.
+#   The axes are drawn in the function drawAxis.
+#   The transformation matrices of the links are calculated in the function linkTransformMat.
 ############################################
 
 import tkinter as tk
@@ -47,15 +47,11 @@ class App(tk.Tk):
                                              [0, -1, 350],
                                              [0, 0, 1]]) # move the origin to the base of the robot and flip the y axis
     def linkTransformMat(self, length, angle):
-        rot =  np.matrix([[np.cos(angle), -np.sin(angle), 0],
-                          [np.sin(angle), np.cos(angle), 0],
+        return np.matrix([[np.cos(angle), -np.sin(angle), 0],
+                          [np.sin(angle), np.cos(angle), length],
                           [0, 0, 1]])
-        transpose = np.matrix([[1, 0, 0],
-                               [0, 1, length],
-                               [0, 0, 1]])
-        return rot * transpose
 
-    def drawAxis(self, transformMatrix, scale = 40, label=""):
+    def drawAxis(self, transformMatrix, scale = 40, label="", offset = 0):
         # draws the arrows of the axis according to the transform matrix
         arrow = np.array([[0, 0, 1], # arrow origin
                           [0, 1, 1], # up arrow
@@ -67,7 +63,7 @@ class App(tk.Tk):
         transformedArrow = transformMatrix @ scaledArrow
         self.canvas.create_line(transformedArrow[0, 0], transformedArrow[1, 0], transformedArrow[0, 1], transformedArrow[1, 1], arrow=tk.LAST, fill="red", width=3)
         self.canvas.create_line(transformedArrow[0, 0], transformedArrow[1, 0], transformedArrow[0, 2], transformedArrow[1, 2], arrow=tk.LAST, fill="blue", width=3)
-        self.canvas.create_text(transformedArrow[0,1]-5*len(label)/2- 15, transformedArrow[1,1], text=label, fill="red")
+        self.canvas.create_text(transformedArrow[0,1]-5*len(label)/2- 15, transformedArrow[1,1]+offset, text=label, fill="red")
 
 
 
@@ -75,25 +71,34 @@ class App(tk.Tk):
         self.canvas.delete("all")
         # Draw the base
         self.canvas.create_rectangle(20, 350, 380, 380, fill="grey")
-        # Draw the first link
-        origin = self.canvasToWorldSpace @ np.array([0,0,1])
-        link1Transform = self.linkTransformMat(self.sliderl1.get(), np.deg2rad(self.slidert1.get()))
-        endLink1 = self.canvasToWorldSpace @ link1Transform @ np.array([0,0,1])
-        self.canvas.create_line(origin[0,0], origin[0,1], endLink1[0,0], endLink1[0,1], fill="black", width=5)
-        # Draw first axis
-        self.drawAxis(self.canvasToWorldSpace, label="World Space")
-        # Draw the second link
-        link2Transform = self.linkTransformMat(self.sliderl2.get(), np.deg2rad(self.slidert2.get()))
-        worldEndLink2 = link1Transform @ link2Transform  @ np.array([0,0,1])
-        endLink2 = self.canvasToWorldSpace @ link1Transform @ link2Transform @ np.array([0,0,1])
-        self.canvas.create_line(endLink1[0,0], endLink1[0,1], endLink2[0,0], endLink2[0,1], fill="black", width=5)
-        # Draw first's link axis
-        self.drawAxis(self.canvasToWorldSpace @ link1Transform, label="Link1 effector")
-        # Draw the second link axis (end effector)
-        self.drawAxis(self.canvasToWorldSpace @ link1Transform @ link2Transform, label="End Effector")
-        # Update the label
+        # Get the transformation matrices of the links
+        transMatWSL1 = self.linkTransformMat(0, np.deg2rad(self.slidert1.get()))
+        transMatL1L2 = self.linkTransformMat(self.sliderl1.get(), np.deg2rad(self.slidert2.get()))
+        transMatL2EE = self.linkTransformMat(self.sliderl2.get(), 0)
+        # Get the transformation matrices of the links to canvas space
+        transMatCanvasWS = self.canvasToWorldSpace
+        transMatCanvasL1 = self.canvasToWorldSpace @ transMatWSL1
+        transMatCanvasL2 = self.canvasToWorldSpace @ transMatWSL1 @ transMatL1L2
+        transMatCanvasEE = self.canvasToWorldSpace @ transMatWSL1 @ transMatL1L2 @ transMatL2EE
+        transMatWSEE = transMatWSL1 @ transMatL1L2 @ transMatL2EE
 
-        self.label.config(text=f"end effector coords : x: {worldEndLink2[0,0]:.2f}, y: {worldEndLink2[0,1]:.2f}")
+        # Draw the links
+        origin = np.array([[0, 0, 1]]).T
+        p1 = transMatCanvasL1 @ origin
+        p2 = transMatCanvasL2 @ origin
+        p3 = transMatCanvasEE @ origin
+        p3WS = transMatWSEE @ origin
+
+        self.canvas.create_line(p1[0, 0], p1[1, 0], p2[0, 0], p2[1, 0], fill="black", width=3)
+        self.canvas.create_line(p2[0, 0], p2[1, 0], p3[0, 0], p3[1, 0], fill="black", width=3)
+        # Draw the axes
+        self.drawAxis(transMatCanvasWS, label="World Space", offset=20)
+        self.drawAxis(transMatCanvasL1, label="L1")
+        self.drawAxis(transMatCanvasL2, label="L2")
+        self.drawAxis(transMatCanvasEE, label="EE")
+        # Update the label
+        self.label.config(text="end effector coords : x: {}, y: {}".format(int(p3WS[0, 0]), int(p3WS[1, 0])))
+
 
 
 
