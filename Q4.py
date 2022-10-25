@@ -4,7 +4,7 @@
 # Version: 1.0
 # ------------------------------------------
 # Description:
-#   This is the main file for the first question of the ARO course work 1.
+#   This is the main file for the fourth question of the ARO course work 1.
 #   It is a GUI that allows the user to change the parameters of the robot
 #   and see the result in real time.
 # Structure:
@@ -23,7 +23,7 @@ class Q4App(tk.Tk):
         super().__init__()
         self.link1Length = 80
         self.link2Length = 80
-        self.jacobianDouble = False
+        self.jacobianUseL3L4 = False
         self.canvasToWorldSpace = np.matrix([[1, 0, 200],
                                              [0, -1, 350],
                                              [0, 0, 1]])  # move the origin to the base of the robot and flip the y axis
@@ -142,8 +142,10 @@ class Q4App(tk.Tk):
         L4Pos = transMatWSL4 @ origin
         # calculate the jacobian
         jacobian = np.vstack([np.cross([0,0,1], (EEPos-L1Pos).T), np.cross([0,0,1], (EEPos-L2Pos).T)])
-        if self.jacobianDouble:
+        if self.jacobianUseL3L4: #allows us to switch between using L1 L2 L3 L4 or just L1 L2
             jacobian = np.vstack([jacobian, np.cross([0,0,1], (EEPos-L3Pos).T), np.cross([0,0,1], (EEPos-L4Pos).T)])
+        else:
+            jacobian = np.vstack([jacobian, np.zeros((1,3)), np.zeros((1,3))])
         return jacobian.T[0:2, :]
 
 
@@ -167,13 +169,12 @@ class Q4App(tk.Tk):
         dt = np.linalg.pinv(jacobian) @ dy
         self.slider1.set(np.rad2deg(t1 + dt[0])+90)
         self.slider2.set(np.rad2deg(t2 + dt[1])+90)
-        if self.jacobianDouble:
-            self.slider3.set(np.rad2deg(t3 + dt[2])+90)
-            self.slider4.set(np.rad2deg(t4 + dt[3])+90)
+        self.slider3.set(np.rad2deg(t3 + dt[2])+90)
+        self.slider4.set(np.rad2deg(t4 + dt[3])+90)
         self.update(None)
 
     def jacobianToggle(self):
-        self.jacobianDouble = not self.jacobianDouble
+        self.jacobianUseL3L4 = not self.jacobianUseL3L4
         self.update(None)
 
 

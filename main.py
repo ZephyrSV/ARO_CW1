@@ -29,10 +29,6 @@ class App(tk.Tk):
         self.button2.grid(row=2, column=1, sticky="nsew")
         self.button4 = tk.Button(self.myGrid, text="Visualize Q4", command=self.button4)
         self.button4.grid(row=3, column=1, sticky="nsew")
-        self.label3 = tk.Label(self.myGrid, text="Motion Planning")
-        self.label3.grid(row=4, column=0, sticky="nsew")
-        self.button3 = tk.Button(self.myGrid, text="Visualize Q3", command=self.button3)
-        self.button3.grid(row=4, column=1, sticky="nsew")
 
         self.myGrid.pack()
         # Footer
@@ -44,9 +40,6 @@ class App(tk.Tk):
 
     def button2(self):
         Q3launch()
-
-    def button3(self):
-        self.label.config(text="Button 3 was pressed")
 
     def button4(self):
         Q4launch()
