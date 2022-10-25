@@ -4,6 +4,7 @@ import tkinter as tk
 
 from Q1 import Q1launch
 from Q3 import Q3launch
+from Q4 import Q4launch
 
 
 class App(tk.Tk):
@@ -48,7 +49,7 @@ class App(tk.Tk):
         self.label.config(text="Button 3 was pressed")
 
     def button4(self):
-        self.label.config(text="Button 4 was pressed")
+        Q4launch()
 
 if __name__ == "__main__":
     app = App()
