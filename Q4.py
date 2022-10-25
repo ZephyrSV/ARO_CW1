@@ -3,15 +3,18 @@
 # Date:    2020-10-20
 # Version: 1.0
 # ------------------------------------------
-# Description:
 #   This is the main file for the fourth question of the ARO course work 1.
 #   It is a GUI that allows the user to change the parameters of the robot
-#   and see the result in real time.
+#   and to observe the changes to the jacobian matrix in real time.
+#   The user can choose between the two different methods of calculating the jacobian matrix.
+#   Additionally, the user can determine a target and use the GO button
+#   to make the robot move to that target.
 # Structure:
 #   The GUI is defined in the __init__ function.
 #   The canvas is updated every time the user changes a parameter (sliders). (see function update)
-#   The axes are drawn in the function drawAxis.
+#   The Jacobian matrix is calculated in the function jacobian.
 #   The transformation matrices of the links are calculated in the function linkTransformMat.
+#   The button "GO" calls the function GO.
 ############################################
 
 import tkinter as tk
